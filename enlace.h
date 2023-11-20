@@ -1,28 +1,34 @@
-#ifndef ENLACE_H
-#define ENLACE_H
+// comunicacao.h
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#ifndef COMUNICACAO_H
+#define COMUNICACAO_H
 
-// Defina as constantes necessárias, como o tamanho máximo do quadro, etc.
 #define TAMANHO_MAX_QUADRO 1000
 
-// Defina as funções principais
-void AplicacaoTransmissora();
-void CamadaDeAplicacaoTransmissora(char *mensagem);
-void CamadaEnlaceDadosTransmissora(int *quadro);
-void CamadaEnlaceDadosTransmissoraControleDeErro(int *quadro);
+struct Comunicacao {
+    char mensagem[TAMANHO_MAX_QUADRO];
+    int quadro[TAMANHO_MAX_QUADRO * 8];
+};
 
-void MeioDeComunicacao(int *fluxoBrutoDeBits);
-void CamadaFisicaTransmissora(int *fluxoBrutoDeBits);
+void CamadaEnlaceReceptoraControleDeErroCRC(struct Comunicacao *comunicacao);
+void CamadaEnlaceReceptoraControleDeErroBitParidadeImpar(struct Comunicacao *comunicacao);
+void CamadaEnlaceReceptoraControleDeErroBitParidadePar(struct Comunicacao *comunicacao);
+void CamadaEnlaceReceptoraControleDeErro(struct Comunicacao *comunicacao);
 
-void CamadaFisicaReceptora(int *fluxoBrutoDeBits);
-void CamadaEnlaceDadosReceptora(int *quadro);
-void CamadaEnlaceDadosReceptoraControleDeErro(int *quadro);
+void CamadaEnlaceTransmissoraControleDeErroCRC(struct Comunicacao *comunicacao);
+void CamadaEnlaceTransmissoraControleDeErroBitParidadeImpar(struct Comunicacao *comunicacao);
+void CamadaEnlaceTransmissoraControleDeErroBitParidadePar(struct Comunicacao *comunicacao);
+void CamadaEnlaceTransmissoraControleDeErro(struct Comunicacao *comunicacao);
 
-void AplicacaoReceptora(char *mensagem);
-void CamadaDeAplicacaoReceptora(int *quadro);
+void convertToBits(struct Comunicacao *comunicacao);
 
-#endif /* ENLACE_H */
+void CamadaAplicacaoReceptora(struct Comunicacao *comunicacao);
+void CamadaEnlaceDadosReceptora(struct Comunicacao *comunicacao);
+
+void MeioDeComunicacao(struct Comunicacao *comunicacao);
+
+void CamadaEnlaceDadosTransmissora(struct Comunicacao *comunicacao);
+void CamadaAplicacaoTransmissora(struct Comunicacao *comunicacao);
+
+#endif // COMUNICACAO_H
 
