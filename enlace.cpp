@@ -1,18 +1,15 @@
 #include "enlace.hpp" 
-#include <iostream> 
-#include <cstdlib>
 
-using namespace std;
 
 void CamadaEnlaceDadosTransmissora(int quadro[]){
-    
+   int tipoDeControleDeErro =2;
+   CamadaEnlaceDadosTransmissoraControleDeErro(quadro, tipoDeControleDeErro);
 }
 
-void CamadaEnlaceDadosReceptoraControleDeErro(int quadro[], int tipoDeControleDeErro){
-
-}
 
 void CamadaEnlaceDadosReceptora(int quadro[]){
+    int tipoDeControleDeErro =2;
+    CamadaEnlaceDadosReceptoraControleDeErro(quadro, tipoDeControleDeErro);
 
 }
 
@@ -61,7 +58,7 @@ void CamadaEnlaceDadosTransmissoraControleDeErro(int quadro[], int tipoDeControl
             CamadaEnlaceDadosTransmissoraControleDeErrorCRC(quadro);
             break; 
         default: 
-            std::cout << "Deu ruim" << endl;
+            std::cout << "controle de erro invalido" << endl;
     }
 
 }
@@ -92,6 +89,11 @@ void MeioDeComunicacao(int fluxoBrutoDeBits[]) {
         // Chama a próxima camada (CamadaEnlaceDadosReceptora)
         CamadaEnlaceDadosReceptora(fluxoBrutoDeBitsPontoB);
     }
+    cout << "Resulado final: ";
+    for(int i=0; i<8; i++){
+        cout << fluxoBrutoDeBitsPontoB[i] << " ";
+    }
+    cout << endl;
 }
 
 int xorPolinomios(int a,int b){
@@ -131,4 +133,78 @@ void calcularCRC(int mensagem[], int crcResultado[]){
     //Realiza a divisao polinomial
     dividirPolinomios(crc, polinomioGerador, crcResultado); 
     
+}
+
+
+void CamadaEnlaceDadosReceptoraControleDeErro(int quadro[], int tipoDeControleDeErro){
+    switch(tipoDeControleDeErro){
+        case 0:
+            CamadaEnlaceDadosReceptoraControleDeErroBitParidadePar(quadro);
+            break; 
+        case 1:
+            CamadaEnlaceDadosTransmissoraControleDeErroBitParidadeImpar(quadro);
+            break; 
+        case 2:
+            CamadaEnlaceDadosTransmissoraControleDeErrorCRC(quadro);
+            break; 
+        default: 
+            cout << "controle de erro invalido" << endl;
+            break;
+
+    }
+}
+
+void CamadaEnlaceDadosReceptoraControleDeErrorCRC(int quadro[]){
+    int crcResultado[32] = {0};
+
+    //calcula o CRC para o quadro recebido
+    calcularCRC(quadro, crcResultado);
+
+    //verifica se há erro comparando o CRC calculado com os bits de CRC no quadro 
+    for(int i=0; i <32; i++){
+        if(crcResultado[i] != quadro[i+8]){
+            //tratamento para erro 
+            cout << "Erro detectado pelo CRC" << endl;
+            break;
+        }
+    }
+    CamadaEnlaceDadosReceptora(quadro);
+}
+
+void CamadaEnlaceDadosReceptoraControleDeErroBitParidadePar(int quadro[]){
+    int countBits1 =0;
+
+    //calcula a qntd de bits 1
+    for(int i=0; i<8; i++){
+        if(quadro[i]==1){
+            countBits1++;
+        }
+    }
+    //verifica o bit de paridade par 
+    if(countBits1 % 2 != quadro[8]){
+        //tratamento de erro 
+        cout << "Erro detectado pela paridade par" << endl;
+    }else{
+        CamadaEnlaceDadosReceptora(quadro);
+    }
+}
+
+void CamadaEnlaceDadosReceptoraControleDeErroBitParidadeImpar(int quadro[]){
+    int countBits1 =0;
+
+    //calcula a quantidade de bits 0
+    for(int i=0; i <8; i++){
+        if(quadro[i] ==1 ){
+            countBits1++;
+        }
+    }
+
+    //Verifica o but de paridade impar 
+    if(countBits1 % 2 == quadro[8]){
+        //tratamento de erro 
+        cout << "Erro detectado pela paridade impar" << endl;
+    }else{
+        //sem erro, chama a proxima
+        CamadaEnlaceDadosReceptora(quadro);
+    }
 }
