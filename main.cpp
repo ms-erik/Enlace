@@ -1,22 +1,39 @@
 #include "enlace.hpp"
 
 int main() {
-    // Exemplo de teste sem erros
-    int quadroSemErros[8] = {0, 1, 0, 1, 1, 0, 1, 0};
-    cout << "Teste sem erros:" << endl;
-    MeioDeComunicacao(quadroSemErros);
+   // Teste com paridade ímpar
+    cout << "Testando paridade ímpar:" << endl;
+    char caracterImpar = 'A';  // Substitua por qualquer caractere desejado
+    int quadroImpar[9];
+    cout << "Caracter original: " << caracterImpar << endl;
+    
+    // Transmitindo
+    CamadaEnlaceDadosTransmissoraControleDeErroBitParidadeImpar(caracterImpar, quadroImpar);
+    cout << "Quadro com paridade ímpar: ";
+    for (int i = 0; i < 9; ++i) {
+        cout << quadroImpar[i] << " ";
+    }
+    cout << endl;
 
-    // Exemplo de teste com erro de paridade par
-    int quadroComErroParidadePar[8] = {1, 1, 0, 1, 1, 0, 1, 0};
-    cout << "\nTeste com erro de paridade par:" << endl;
-    MeioDeComunicacao(quadroComErroParidadePar);
+    // Recebendo
+    CamadaEnlaceDadosReceptoraControleDeErroBitParidadeImpar(caracterImpar);
 
-    // Exemplo de teste com erro de CRC
-    int quadroComErroCRC[8] = {0, 1, 0, 1, 1, 0, 1, 0};
-    cout << "\nTeste com erro de CRC:" << endl;
-    MeioDeComunicacao(quadroComErroCRC);
+    // Teste com paridade par
+    cout << "\nTestando paridade par:" << endl;
+    char caracterPar = 'B';  // Substitua por qualquer caractere desejado
+    int quadroPar[9];
+    cout << "Caracter original: " << caracterPar << endl;
+    
+    // Transmitindo
+    CamadaEnlaceDadosTransmissoraControleDeErroBitParidadePar(caracterPar, quadroPar);
+    cout << "Quadro com paridade par: ";
+    for (int i = 0; i < 9; ++i) {
+        cout << quadroPar[i] << " ";
+    }
+    cout << endl;
 
-    // Adicione mais testes conforme necessário...
+    // Recebendo
+    CamadaEnlaceDadosReceptoraControleDeErroBitParidadePar(caracterPar);
 
     return 0;
 }

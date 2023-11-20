@@ -1,16 +1,19 @@
 #include "enlace.hpp" 
+#include <random>
 
-
-void CamadaEnlaceDadosTransmissora(int quadro[]){
+void CamadaEnlaceDadosTransmissora(const string& mensagem){
    int tipoDeControleDeErro =2;
-   CamadaEnlaceDadosTransmissoraControleDeErro(quadro, tipoDeControleDeErro);
+   for(char caracter: mensagem){
+        CamadaEnlaceDadosTransmissoraControleDeErro(caracter, tipoDeControleDeErro);
+   }
 }
 
 
-void CamadaEnlaceDadosReceptora(int quadro[]){
+void CamadaEnlaceDadosReceptora(const string& mensagem){
     int tipoDeControleDeErro =2;
-    CamadaEnlaceDadosReceptoraControleDeErro(quadro, tipoDeControleDeErro);
-
+    for(char bit : mensagem){
+        CamadaEnlaceDadosReceptoraControleDeErro(bit, tipoDeControleDeErro);
+    }
 }
 
 void CamadaEnlaceDadosTransmissoraControleDeErrorCRC(int quadro[]){
@@ -27,32 +30,45 @@ void CamadaEnlaceDadosTransmissoraControleDeErrorCRC(int quadro[]){
 
 }
 
-void CamadaEnlaceDadosTransmissoraControleDeErroBitParidadePar(int quadro[]){
+void CamadaEnlaceDadosTransmissoraControleDeErroBitParidadePar(char caracter, int quadro[]){
     int countBits1 =0;
 
     //obtem a quantidade de bits 1 no quadro 
-    for(int i=0; i< 8; i++){
-        if(quadro[i] ==1) countBits1++;
+    for(int i=7; i >=0; i--){
+        int bit= (caracter > i) & 1;
+        if(bit==1)countBits1++;
+    }
+    for(int i=0; i<8; i++){
+        quadro[i] = (caracter >> i) &1;
     }
     quadro[8] = (countBits1 % 2 ==0) ? 0 : 1;
 }
 
-void CamadaEnlaceDadosTransmissoraControleDeErroBitParidadeImpar(int quadro[]){
+void CamadaEnlaceDadosTransmissoraControleDeErroBitParidadeImpar(char caracter, int quadro[]){
     int countBits1 =0;
 
+    for(int i=7; i>=0; i--){
+        int bit =(caracter >> i) & 1;
+        if(bit ==1)countBits1++;
+    }
+
     for(int i=0; i<8; i++){
-        if(quadro[i]==1) countBits1++;
+        quadro[i] = (caracter >> i) & 1;
     }
     quadro[8] = (countBits1 % 2 ==0) ? 1 : 0;
 }
 
-void CamadaEnlaceDadosTransmissoraControleDeErro(int quadro[], int tipoDeControleDeErro){
+void CamadaEnlaceDadosTransmissoraControleDeErro(char caracter, int tipoDeControleDeErro){
+    int quadro[9];
+    for(int i=7; i>=0; i--){
+        quadro[i] = (caracter >> i) & 1;
+    }
     switch(tipoDeControleDeErro){
         case 0:
-            CamadaEnlaceDadosTransmissoraControleDeErroBitParidadePar(quadro);
+            CamadaEnlaceDadosTransmissoraControleDeErroBitParidadePar(caracter, quadro);
             break; 
         case 1:
-            CamadaEnlaceDadosTransmissoraControleDeErroBitParidadeImpar(quadro);
+            CamadaEnlaceDadosTransmissoraControleDeErroBitParidadeImpar(caracter, quadro);
             break;  
         case 2:
             CamadaEnlaceDadosTransmissoraControleDeErrorCRC(quadro);
@@ -87,7 +103,11 @@ void MeioDeComunicacao(int fluxoBrutoDeBits[]) {
         }
 
         // Chama a próxima camada (CamadaEnlaceDadosReceptora)
-        CamadaEnlaceDadosReceptora(fluxoBrutoDeBitsPontoB);
+        string bitString;
+        for(int i=0; i < 8; i++){
+            bitString += to_string(fluxoBrutoDeBitsPontoB[i]);
+        }
+        CamadaEnlaceDadosReceptora(bitString);
     }
     cout << "Resulado final: ";
     for(int i=0; i<8; i++){
@@ -136,16 +156,20 @@ void calcularCRC(int mensagem[], int crcResultado[]){
 }
 
 
-void CamadaEnlaceDadosReceptoraControleDeErro(int quadro[], int tipoDeControleDeErro){
+void CamadaEnlaceDadosReceptoraControleDeErro(char caracter, int tipoDeControleDeErro){
+    int quadro[9];
+    for(int i=7; i >=0; i--){
+        quadro[i]= (caracter>>i) & 1;
+    }
     switch(tipoDeControleDeErro){
         case 0:
-            CamadaEnlaceDadosReceptoraControleDeErroBitParidadePar(quadro);
+            CamadaEnlaceDadosReceptoraControleDeErroBitParidadePar(caracter);
             break; 
         case 1:
-            CamadaEnlaceDadosTransmissoraControleDeErroBitParidadeImpar(quadro);
+            CamadaEnlaceDadosReceptoraControleDeErroBitParidadeImpar(caracter);
             break; 
         case 2:
-            CamadaEnlaceDadosTransmissoraControleDeErrorCRC(quadro);
+            CamadaEnlaceDadosReceptoraControleDeErrorCRC(quadro);
             break; 
         default: 
             cout << "controle de erro invalido" << endl;
@@ -168,43 +192,43 @@ void CamadaEnlaceDadosReceptoraControleDeErrorCRC(int quadro[]){
             break;
         }
     }
-    CamadaEnlaceDadosReceptora(quadro);
+   // CamadaEnlaceDadosReceptora(quadro);
 }
 
-void CamadaEnlaceDadosReceptoraControleDeErroBitParidadePar(int quadro[]){
-    int countBits1 =0;
+void CamadaEnlaceDadosReceptoraControleDeErroBitParidadePar(char caracter){
+  int countBits1 = 0;
 
-    //calcula a qntd de bits 1
-    for(int i=0; i<8; i++){
-        if(quadro[i]==1){
-            countBits1++;
-        }
+    for (int i = 7; i >= 0; --i) {
+        int bit = (caracter >> i) & 1;
+        // Implementação do controle de erro aqui, usando 'bit' como o bit atual.
+        countBits1 += bit;
     }
-    //verifica o bit de paridade par 
-    if(countBits1 % 2 != quadro[8]){
-        //tratamento de erro 
+
+    // Verifica o bit de paridade par
+    if (countBits1 % 2 != 0) {
+        // Tratamento de erro
         cout << "Erro detectado pela paridade par" << endl;
-    }else{
-        CamadaEnlaceDadosReceptora(quadro);
+    } else {
+        // Sem erro
+        cout << "Sem erro detectado pela paridade par" << endl;
     }
 }
 
-void CamadaEnlaceDadosReceptoraControleDeErroBitParidadeImpar(int quadro[]){
-    int countBits1 =0;
+void CamadaEnlaceDadosReceptoraControleDeErroBitParidadeImpar(char caracter){
+   int countBits1 = 0;
 
-    //calcula a quantidade de bits 0
-    for(int i=0; i <8; i++){
-        if(quadro[i] ==1 ){
-            countBits1++;
-        }
+    for (int i = 7; i >= 0; --i) {
+        int bit = (caracter >> i) & 1;
+        // Implementação do controle de erro aqui, usando 'bit' como o bit atual.
+        countBits1 += bit;
     }
 
-    //Verifica o but de paridade impar 
-    if(countBits1 % 2 == quadro[8]){
-        //tratamento de erro 
-        cout << "Erro detectado pela paridade impar" << endl;
-    }else{
-        //sem erro, chama a proxima
-        CamadaEnlaceDadosReceptora(quadro);
+    // Verifica o bit de paridade ímpar
+    if (countBits1 % 2 == 0) {
+        // Tratamento de erro
+        cout << "Erro detectado pela paridade ímpar" << endl;
+    } else {
+        // Sem erro
+        cout << "Sem erro detectado pela paridade ímpar" << endl;
     }
 }
