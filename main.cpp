@@ -1,39 +1,14 @@
-#include "enlace.hpp"
+#include "c2.hpp"
 
 int main() {
-   // Teste com paridade ímpar
-    cout << "Testando paridade ímpar:" << endl;
-    char caracterImpar = 'A';  // Substitua por qualquer caractere desejado
-    int quadroImpar[9];
-    cout << "Caracter original: " << caracterImpar << endl;
-    
-    // Transmitindo
-    CamadaEnlaceDadosTransmissoraControleDeErroBitParidadeImpar(caracterImpar, quadroImpar);
-    cout << "Quadro com paridade ímpar: ";
-    for (int i = 0; i < 9; ++i) {
-        cout << quadroImpar[i] << " ";
-    }
-    cout << endl;
+    const int TAMANHO_QUADRO = 40;  // Tamanho do quadro (8 bits para cada caractere)
 
-    // Recebendo
-    CamadaEnlaceDadosReceptoraControleDeErroBitParidadeImpar(caracterImpar);
+    // Aloca espaço para o quadro
+    int quadro[TAMANHO_QUADRO];
 
-    // Teste com paridade par
-    cout << "\nTestando paridade par:" << endl;
-    char caracterPar = 'B';  // Substitua por qualquer caractere desejado
-    int quadroPar[9];
-    cout << "Caracter original: " << caracterPar << endl;
-    
-    // Transmitindo
-    CamadaEnlaceDadosTransmissoraControleDeErroBitParidadePar(caracterPar, quadroPar);
-    cout << "Quadro com paridade par: ";
-    for (int i = 0; i < 9; ++i) {
-        cout << quadroPar[i] << " ";
-    }
-    cout << endl;
-
-    // Recebendo
-    CamadaEnlaceDadosReceptoraControleDeErroBitParidadePar(caracterPar);
+    // Chama a camada de enlace de dados transmissora
+    CamadaEnlaceDadosTransmissora(quadro);
 
     return 0;
 }
+
