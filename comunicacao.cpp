@@ -1,4 +1,4 @@
-#include "c2.hpp" 
+#include "comunicacao.hpp" 
 
 
 void CamadaEnlaceDadosTransmissora(int quadro[]){
