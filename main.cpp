@@ -1,7 +1,7 @@
 #include "comunicacao.hpp"
 
 int main() {
-    comunicaco c;
+    comunicacao c;
     c.CamadaEnlaceDadosTransmissora();
     c.MeioDeComunicacao();
     c.CamadaEnlaceDadosReceptora();
