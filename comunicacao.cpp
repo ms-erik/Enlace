@@ -1,5 +1,31 @@
 #include "comunicacao.hpp" 
+#include <bitset>
 
+std::string binaryToAscii(const std::vector<int>& binary) {
+    std::string asciiString;
+
+    // Certifique-se de que o vetor binário tenha um número de bits múltiplo de 8
+    size_t padding = 8 - (binary.size() % 8);
+    std::vector<int> paddedBinary(padding, 0);
+    paddedBinary.insert(paddedBinary.end(), binary.begin(), binary.end());
+
+    // Itera sobre o vetor binário em incrementos de 8 bits
+    for (size_t i = 0; i < paddedBinary.size(); i += 8) {
+        // Obtém um bloco de 8 bits
+        std::vector<int> block(paddedBinary.begin() + i, paddedBinary.begin() + i + 8);
+
+        // Converte o bloco de 8 bits para um caractere ASCII
+        char asciiChar = static_cast<char>(std::bitset<8>(
+            block[0] << 7 | block[1] << 6 | block[2] << 5 | block[3] << 4 |
+            block[4] << 3 | block[5] << 2 | block[6] << 1 | block[7]
+        ).to_ulong());
+
+        // Adiciona o caractere à string ASCII resultante
+        asciiString.push_back(asciiChar);
+    }
+
+    return asciiString;
+}
 
 void comunicaco::CamadaEnlaceDadosTransmissora(){
     cout << "Insira o tipo de erro:" << endl << "Tipo 0: Paridade par;" << endl << "Tipo 1: Paridade Impar;" << endl << "Tipo 2: CRC" << endl;
@@ -110,6 +136,10 @@ void comunicaco::CamadaAplicacaoReceptora(){
     for(auto bit : quadro){
         cout << bit;
     }
+    vector<int> aux = quadro;
+    aux.pop_back();
+    string saida = binaryToAscii(aux);
+    cout << endl << saida;
     cout << endl;
 }
 
@@ -124,7 +154,7 @@ void  comunicaco::CamadaEnlaceDadosReceptoraControleDeErro(){
             CamadaEnlaceDadosReceptoraControleDeErroBitParidadePar();
             break; 
         case 1:
-            CamadaEnlaceDadosTransmissoraControleDeErroBitParidadeImpar();
+            CamadaEnlaceDadosReceptoraControleDeErroBitParidadeImpar();
             break; 
         case 2:
             CamadaEnlaceDadosTransmissoraControleDeErrorCRC();
@@ -235,3 +265,4 @@ void comunicaco::calcularCRC(int mensagem[], int crcResultado[]){
     dividirPolinomios(crc, polinomioGerador, crcResultado); 
     
 }
+
