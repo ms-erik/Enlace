@@ -1,33 +1,12 @@
 #include "comunicacao.hpp" 
 #include <bitset>
 
-#define TAMANHO_CRC 32
+#define TAMANHO_CRC 33
 
-std::string binaryToAscii(const std::vector<int>& binary) {
-    std::string asciiString;
+#define WIDTH 32
+#define TOPBIT (1U << (WIDTH - 1))
+#define POLYNOMIAL 0xEDB88320U
 
-    // Certifique-se de que o vetor binário tenha um número de bits múltiplo de 8
-    size_t padding = 8 - (binary.size() % 8);
-    std::vector<int> paddedBinary(padding, 0);
-    paddedBinary.insert(paddedBinary.end(), binary.begin(), binary.end());
-
-    // Itera sobre o vetor binário em incrementos de 8 bits
-    for (size_t i = 0; i < paddedBinary.size(); i += 8) {
-        // Obtém um bloco de 8 bits
-        std::vector<int> block(paddedBinary.begin() + i, paddedBinary.begin() + i + 8);
-
-        // Converte o bloco de 8 bits para um caractere ASCII
-        char asciiChar = static_cast<char>(std::bitset<8>(
-            block[0] << 7 | block[1] << 6 | block[2] << 5 | block[3] << 4 |
-            block[4] << 3 | block[5] << 2 | block[6] << 1 | block[7]
-        ).to_ulong());
-
-        // Adiciona o caractere à string ASCII resultante
-        asciiString.push_back(asciiChar);
-    }
-
-    return asciiString;
-}
 
 void comunicacao::CamadaEnlaceDadosTransmissora(){
     cout << "Insira o tipo de erro:" << endl << "Tipo 0: Paridade par;" << endl << "Tipo 1: Paridade Impar;" << endl << "Tipo 2: CRC" << endl;
@@ -61,8 +40,7 @@ void  comunicacao::CamadaEnlaceDadosTransmissoraControleDeErro(){
             CamadaEnlaceDadosTransmissoraControleDeErroBitParidadeImpar();
             break;  
         case 2:
-            //CamadaEnlaceDadosTransmissoraControleDeErrorCRC();
-            TErroCRC();
+            CamadaEnlaceDadosTransmissoraControleDeErrorCRC();
             break; 
         default: 
             std::cout << "controle de erro invalido" << endl;
@@ -93,13 +71,13 @@ void comunicacao::CamadaEnlaceDadosTransmissoraControleDeErroBitParidadeImpar(){
 }
 
 void  comunicacao::CamadaEnlaceDadosTransmissoraControleDeErrorCRC(){
-    //inicializa o aray para armazenar o resultado do CRC 
-    int *crcResultado = new int[TAMANHO_CRC+quadro.size()];
-    //calcula o CRC 
-    calcularCRC(crcResultado);
+        int *crcResultado = new int[WIDTH  + quadro.size()];
 
-    //adicione os bits do CRC ao final do qd 
-        quadro.insert(quadro.end(), crcResultado, crcResultado +32);
+        // Calcula o CRC
+        calcularCRC();
+
+        // Adiciona os bits do CRC ao final do quadro
+        quadro.insert(quadro.end(), crcResultado, crcResultado + WIDTH);
 
         delete[] crcResultado;
 }
@@ -139,6 +117,10 @@ void comunicacao::CamadaAplicacaoReceptora(){
     vector<int> aux = quadro;
     if(tipoDeControleDeErro == 0 || tipoDeControleDeErro ==1){
         aux.pop_back();
+    }else{
+        for(int i=0; i < TAMANHO_CRC; i++){
+        //    aux.pop_back();
+        }
     }
     string saida = binaryToAscii(aux);
     cout << endl << saida;
@@ -159,8 +141,7 @@ void  comunicacao::CamadaEnlaceDadosReceptoraControleDeErro(){
             CamadaEnlaceDadosReceptoraControleDeErroBitParidadeImpar();
             break; 
         case 2:
-           // CamadaEnlaceDadosTransmissoraControleDeErrorCRC();
-            EErroCRC();
+            CamadaEnlaceDadosReceptoraControleDeErrorCRC();
             break; 
         default: 
             cout << "controle de erro invalido" << endl;
@@ -170,20 +151,20 @@ void  comunicacao::CamadaEnlaceDadosReceptoraControleDeErro(){
 }
 
 void comunicacao::CamadaEnlaceDadosReceptoraControleDeErrorCRC(){
-    int *crcResultado = new int[TAMANHO_CRC + quadro.size()];
+        // Calcula o CRC para o quadro recebido
+        int * crcResultado = new int[WIDTH+quadro.size()];
+        calcularCRC();
 
-    //calcula o CRC para o qd recebido
-    calcularCRC(crcResultado);
-
-    //verifica se há erro comparando o CRC calculado com os bits de CRC no qd 
-    for(int i =0; i < TAMANHO_CRC; i++){
-        if(crcResultado[i] != quadro[TAMANHO_CRC + i]){
-            //tratamento para erro 
-            cout << "Erro detectado pelo CRC" << endl;
-            break;
+        // Verifica se há erro comparando o CRC calculado com os bits de CRC no quadro
+        for (int i = 0; i < WIDTH ; ++i) {
+            if (crcResultado[i] != quadro[quadro.size() - WIDTH  + i]) {
+                // Tratamento para erro
+                std::cout << "Erro detectado pelo CRC" << std::endl;
+                break;
+            }
         }
-    }
-    delete[] crcResultado;
+
+        delete[] crcResultado;
 }
 
 void comunicacao::CamadaEnlaceDadosReceptoraControleDeErroBitParidadePar(){
@@ -229,123 +210,45 @@ void  comunicacao::stringToBinary(char caracter){
         }
 }
 
-int comunicacao::xorPolinomios(int a,int b){
-    // xor logico
-    return a ^ b;
-}
 
-void comunicacao::dividirPolinomios(int dividendo[], int divisor[], int resultado[]){
-    for(int i=0; i <quadro.size(); i++){
-        if(dividendo[0]==1){
-            //se o bit mais significativo do dividendo for 1, realiza a operacao XOR com o divisor 
-            for(int j=0; j<quadro.size(); j++){
-                dividendo[j] = xorPolinomios(dividendo[j],divisor[j]);
+void comunicacao::calcularCRC(){
+     // Polinômio gerador (CRC-32)
+        int polinomioGerador[TAMANHO_CRC] = {1, 0, 0, 0, 0, 0, 1, 0, 0, 1, 1, 0, 0, 0, 0, 0, 1, 1, 1, 0, 1, 1, 0, 1, 1, 1, 0, 1, 1, 0, 1, 1, 1};
+        
+        std::vector<int> crc(quadro.begin(), quadro.end());
+
+        for (int i = 0; i < quadro.size(); ++i) {
+            crc[i] = quadro[i];  // Inicia o registro de CRC com o próximo bit do quadro
+            for (int j = 0; j < TAMANHO_CRC - 1; ++j) {
+                crc[j + 1] = (crc[j + 1] ^ (crc[0] & polinomioGerador[j + 1]));
             }
         }
-      //desloca os bits do dividendo para a direita
-        for(int j=0; j<quadro.size()-1; j++){
-            dividendo[j] = dividendo[j+1];
-        }
-            dividendo[quadro.size()-1] =0; //o ultimo bit preenchido com 0
-    }
-    //0 resultado da divisão é armazenado nos ultimos 7 bits do dividendo 
-    for(int i=0; i<quadro.size()-1; i++){
-        resultado[i] = dividendo[i+1];
-    }
-}
-void comunicacao::calcularCRC( int crcResultado[]){
 
-    //Polinomio gerador (CRC-32)
-    int polinomioGerador[TAMANHO_CRC] = {0, 0, 0, 0, 0, 1, 0, 0, 1, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 1, 1, 0, 1, 1, 0, 1, 1, 0, 1, 1, 1};
-
-    //Inicia CRC com 32 btis iguais a 0
-    int *crc = new int[TAMANHO_CRC];
-
-    for(int i=0; i < TAMANHO_CRC; i++){
-        crc[i] = quadro[i];
-    }
-    //Realiza a divisao polinomial
-    dividirPolinomios(crc, polinomioGerador, crcResultado); 
-    
+        quadro = crc; 
 }
 
+std::string comunicacao::binaryToAscii(const std::vector<int>& binary) {
+    std::string asciiString;
 
-void comunicacao::TErroCRC(){
-    int polinomio[32] = {0, 0, 0, 0, 0, 1, 0, 0, 1, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 1, 1, 0, 1, 1, 0, 1, 1, 0, 1, 1, 1};
-    
-    // adiciona (grau do polinomio - 1) 0 ao novo quadro
-    vector<int> novo_quadro;
-    novo_quadro = this->quadro;
-    for (int i = 0; i < size(polinomio) - 1; i++){
-        novo_quadro.emplace_back(0);
+    // Certifique-se de que o vetor binário tenha um número de bits múltiplo de 8
+    size_t padding = 8 - (binary.size() % 8);
+    std::vector<int> paddedBinary(padding, 0);
+    paddedBinary.insert(paddedBinary.end(), binary.begin(), binary.end());
+
+    // Itera sobre o vetor binário em incrementos de 8 bits
+    for (size_t i = 0; i < paddedBinary.size(); i += 8) {
+        // Obtém um bloco de 8 bits
+        std::vector<int> block(paddedBinary.begin() + i, paddedBinary.begin() + i + 8);
+
+        // Converte o bloco de 8 bits para um caractere ASCII
+        char asciiChar = static_cast<char>(std::bitset<8>(
+            block[0] << 7 | block[1] << 6 | block[2] << 5 | block[3] << 4 |
+            block[4] << 3 | block[5] << 2 | block[6] << 1 | block[7]
+        ).to_ulong());
+
+        // Adiciona o caractere à string ASCII resultante
+        asciiString.push_back(asciiChar);
     }
 
-    for (int i = 0; i < this->quadro.size(); i++){
-        if (novo_quadro[i] == 1){
-            //Faz o XOR com todos os elementos do polinomio
-            for (int j = 0; j < size(polinomio) - 1; j++){
-                novo_quadro[j + i] ^= polinomio[j];
-            }
-        }
-    }
-    cout << endl;
-   
-    int i = 0;
-    for (auto bit : this->quadro){
-        novo_quadro[i] = bit;
-        i++;
-    }
-
-    cout << "* crc: ";
-    for (auto bit : novo_quadro){
-        cout << bit;
-    }
-
-    cout << endl; 
-    this->quadro = novo_quadro; 
-}
-
-void comunicacao::EErroCRC(){
-    int polinomio[32] = {0, 0, 0, 0, 0, 1, 0, 0, 1, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 1, 1, 0, 1, 1, 0, 1, 1, 0, 1, 1, 1};
-    
-    // Adiciona (grau do polinomio - 1) zeros ao novo quadro
-    vector<int> novo_quadro;
-    novo_quadro = this->quadro;
-    for (int i = 0; i < size(polinomio) - 1; i++){
-        novo_quadro.emplace_back(0);
-    }
-
-    for (int i = 0; i < this->quadro.size(); i++){
-        if (novo_quadro[i] == 1){
-            // Faz o XOR com todos os elementos do polinômio
-            for (int j = 0; j < size(polinomio) - 1; j++){
-                novo_quadro[j + i] ^= polinomio[j];
-            }
-        }
-    }
-
-    // Verifica se há erro comparando o resultado do CRC com os bits de CRC no quadro
-    for (int i = 0; i < size(polinomio) - 1; i++){
-        if (novo_quadro[i + this->quadro.size() - size(polinomio) + 1] != 0){
-            // Tratamento para erro
-            cout << "Erro detectado pelo CRC" << endl;
-            break;
-        }
-    }
-
-    cout << endl;
-   
-    int i = 0;
-    for (auto bit : this->quadro){
-        novo_quadro[i] = bit;
-        i++;
-    }
-
-    cout << "* crc: ";
-    for (auto bit : novo_quadro){
-        cout << bit;
-    }
-
-    cout << endl; 
-    this->quadro = novo_quadro; 
+    return asciiString;
 }

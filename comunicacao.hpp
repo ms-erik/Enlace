@@ -30,5 +30,6 @@ class comunicacao{
         int xorPolinomios(int a, int b);
         void stringToBinary(char caracter);
         void dividirPolinomios(int dividendo[], int divisor[], int resultado[]);
-        void calcularCRC(int crcResultado[]);
+        void calcularCRC();
+        std::string binaryToAscii(const std::vector<int>& binary);
 };
