@@ -14,3 +14,18 @@ Simulação da camada de enlace para comunicação entre computadores A e B
 - Compiler: GCC (GNU Compiler Collection) 13.2.1 (20230801)
 
 
+## Compilação
+
+compila:
+
+      make
+roda:
+
+      make run
+
+limpa arquivos:
+
+    make clean
+
+
+As instruções de quais entradas são necessárias são dadas ao longo do código.
