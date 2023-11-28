@@ -26,8 +26,6 @@ class comunicacao{
     private:
         int tipoDeControleDeErro;
         vector<int> quadro;
-        int xorPolinomios(int a, int b);
         void stringToBinary(char caracter);
-        void dividirPolinomios(int dividendo[], int divisor[], int resultado[]);
         std::string binaryToAscii(const std::vector<int>& binary);
 };

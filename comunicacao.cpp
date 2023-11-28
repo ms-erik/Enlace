@@ -120,7 +120,7 @@ void comunicacao::MeioDeComunicacao() {
     cout << "Digite a porcentagem de erro" << endl;
     cin >> porcentagemDeErros; // valor de 0 a 100
 
-    // Inicializa os fluxos brutos de bits nos pontos A e B
+    // Inicializa os fluxos brutos de bits nos pontos B
     for(int i =0; i < quadro.size(); i++){
         //caso o rand seja maior que o erro, adiciona o elemento certo
        if((rand() % 100) > porcentagemDeErros){
@@ -204,6 +204,7 @@ void comunicacao::CamadaEnlaceDadosReceptoraControleDeErrorCRC(){
             }
         }
         // caso queira ver como ficou o resto da divisao
+        
         /*
         cout << "imprimindo o valor do crc" << endl;
         for(auto n : crc){
@@ -211,6 +212,7 @@ void comunicacao::CamadaEnlaceDadosReceptoraControleDeErrorCRC(){
         }
         cout << endl;
         */
+        
         
 }
 
