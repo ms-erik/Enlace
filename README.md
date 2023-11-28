@@ -1,5 +1,6 @@
 # Enlace
-Simulação de camada de enlace para comunicação entre computadores A e B
+Simulação da camada de enlace para comunicação entre computadores A e B
+
 **Video Tutorial Link:** [Video Tutorial]()
 
 ## Membros do Grupo
@@ -11,3 +12,5 @@ Simulação de camada de enlace para comunicação entre computadores A e B
 ## Informações Gerais
 - Linux Distribution: Arch Linux
 - Compiler: GCC (GNU Compiler Collection) 13.2.1 (20230801)
+
+

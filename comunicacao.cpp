@@ -200,6 +200,7 @@ void comunicacao::CamadaEnlaceDadosReceptoraControleDeErrorCRC(){
                 break;
             }
         }
+        // caso queira ver como ficou o resto da divisao
         /*
         cout << "imprimindo o valor do crc" << endl;
         for(auto n : crc){
