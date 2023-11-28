@@ -8,7 +8,7 @@ void comunicacao::AplicacaoTransmissora(){
     cin >> tipoDeControleDeErro;
     // caso o usuario digite um numero indevido, sai do programa
     if(tipoDeControleDeErro != 0 && tipoDeControleDeErro != 1 && tipoDeControleDeErro !=2){
-        cout << "controle de erro invalido, tente novamentte" << endl;
+        cout << "controle de erro invalido, tente novamente" << endl;
         exit(-1);
     }
 
@@ -100,6 +100,7 @@ void  comunicacao::CamadaEnlaceDadosTransmissoraControleDeErrorCRC(){
         //levando em conta que sao apenas os 32 bits finais do crc, o resto dele eh 0
         quadro.insert(quadro.end(), crc.end() - TAMANHO_CRC, crc.end());
 
+        //imprime o quadro após o processo
         cout << "quadro apos crc" << endl;
         for(auto n : quadro){
             cout << n;
@@ -143,13 +144,15 @@ void comunicacao::AplicacaoReceptora(){
         cout << bit;
     }
     vector<int> aux = quadro;
+    //remove os bits de paridade ou o código de verificação CRC para printar a saida final
     if(tipoDeControleDeErro == 0 || tipoDeControleDeErro ==1){
-        aux.pop_back();
+        aux.pop_back();//remove os bits de paridade
     }else{
         for(int i=0; i < TAMANHO_CRC; i++){
-            aux.pop_back();
+            aux.pop_back();// remove os bits de verificacao CRC
         }
     }
+    //converte os bits para ascii e imprime o resultado da comunicao
     string saida = binaryToAscii(aux);
     cout << endl << saida;
     cout << endl;
