@@ -2,9 +2,8 @@
 
 int main() {
     comunicacao c;
-    c.CamadaEnlaceDadosTransmissora();
+    c.AplicacaoTransmissora();
     c.MeioDeComunicacao();
-    c.CamadaEnlaceDadosReceptora();
-    c.CamadaAplicacaoReceptora();
+    c.AplicacaoReceptora();
 }
 

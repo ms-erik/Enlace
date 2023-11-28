@@ -2,7 +2,7 @@
 
 #include <string>
 #include <vector>
-
+#include <bitset>
 #include <iostream> 
 #include <cstdlib>
 
@@ -21,15 +21,13 @@ class comunicacao{
         void CamadaEnlaceDadosReceptoraControleDeErrorCRC();
         void CamadaEnlaceDadosReceptoraControleDeErroBitParidadePar();
         void CamadaEnlaceDadosReceptoraControleDeErroBitParidadeImpar();
-        void CamadaAplicacaoReceptora();
-        void TErroCRC();
-        void EErroCRC();
+        void AplicacaoReceptora();
+        void AplicacaoTransmissora();
     private:
         int tipoDeControleDeErro;
         vector<int> quadro;
         int xorPolinomios(int a, int b);
         void stringToBinary(char caracter);
         void dividirPolinomios(int dividendo[], int divisor[], int resultado[]);
-        void calcularCRC();
         std::string binaryToAscii(const std::vector<int>& binary);
 };
